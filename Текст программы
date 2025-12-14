@@ -6,24 +6,16 @@ import json
 
 class RadarCrossSectionCalculator:
     def __init__(self, diameter):
-        """
-        Конструктор принимает диаметр сферы и сохраняет радиус для дальнейших расчётов.
-        """
         self.diameter = diameter
         self.radius = diameter / 2
 
     def calculate_epr(self, frequency):
-        """
-        Метод вычисляет значение ЭПР на указанной частоте.
-        """
-        # Основные константы и предварительные вычисления
-        speed_of_light = 3e8  # скорость света, м/с
-        wavelength = speed_of_light / frequency  # длина волны, м
+        # Основные константы
+        speed_of_light = 3e8  # скорость света
+        wavelength = speed_of_light / frequency  # длина волны
         k = 2 * np.pi / wavelength  # волновое число
 
-        # Выбор числа итераций для суммирования
-        N = int(np.ceil(k * self.radius + 4.05))  # необходимое количество членов ряда
-
+        N = int(np.ceil(k * self.radius + 4.05)) 
         # Суммы по рядам для A_n и B_n
         an_sum = 0
         bn_sum = 0
@@ -31,7 +23,7 @@ class RadarCrossSectionCalculator:
         # Итерации по порядку функций Бесселя
         for n in range(N):
             kr = k * self.radius  # аргумент функций Бесселя
-            jn_kr = spherical_jn(n, kr)  # сферическая функция Бесселя первого рода
+            jn_kr = spherical_jn(n, kr)  # сферическая функция Бесселя
             hn_kr = spherical_jn(n, kr) + 1j * spherical_yn(n, kr)  # сферическая функция Ганкеля
 
             # Коэффициент B_n
@@ -47,21 +39,18 @@ class RadarCrossSectionCalculator:
             # Коэффициент A_n
             an = jn_kr / hn_kr
 
-            # Сумма для рядов EPR
+            # Сумма для рядов
             term = (-1)**n * (n + 0.5) * (bn - an)
             an_sum += term.real
             bn_sum += term.imag
 
-        # Окончательное значение ЭПР
+        # значение ЭПР
         epr_value = ((wavelength ** 2) / np.pi) * abs(an_sum + 1j * bn_sum) ** 2
         return epr_value
 
 
 class Plotter:
     def plot_epr_frequency(self, frequencies, ep_values, filename):
-        """
-        Отрисовка графика зависимости ЭПР от частоты.
-        """
         plt.figure(figsize=(10, 6))
         plt.semilogx(frequencies, ep_values, label="ЭПР")
         plt.xlabel("Частота, Гц")
@@ -72,28 +61,22 @@ class Plotter:
         plt.savefig(filename)
         print("График успешно сохранён:", filename)
 
-
 def main():
     # Заданные параметры
-    D = 30e-3  # диаметр сферы, м
-    fmin = 0.01e9  # минимальная частота, Гц
-    fmax = 25e9  # максимальная частота, Гц
+    D = 30e-3  # диаметр сферы
+    fmin = 0.01e9  # минимальная частота
+    fmax = 25e9  # максимальная частота
     num_points = 100  # количество точек для графика
 
-    # Инициализация калькулятора
     calculator = RadarCrossSectionCalculator(D)
 
-    # Генерация массива частот
     frequencies = np.logspace(np.log10(fmin), np.log10(fmax), num_points)
     data_list = []
 
-    # Расчёт ЭПР для каждой частоты и подготовка данных
+    # Расчёт ЭПР для каждой частоты
     for freq in frequencies:
-        # Расчёт ЭПР
         epr_value = calculator.calculate_epr(freq)
-        # Расчёт длины волны
         wavelength = 3e8 / freq  # λ = c/freq
-        # Добавляем запись в список
         data_point = {
             "freq": freq,
             "lambda": wavelength,
@@ -109,12 +92,6 @@ def main():
     # Сохранение в JSON
     with open('rcs_data.json', 'w') as f:
         json.dump(result, f, indent=4)
-
-    # Можно добавить рисунок (график)
-    # plotter = Plotter()
-    # output_image_filename = 'epr_plot.png'
-    # plotter.plot_epr_frequency(frequencies, ep_values, output_image_filename)
-
 
 if __name__ == "__main__":
     main()
