@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -21,24 +20,34 @@ def creating_plot(d_times, d_dB, theta):
     fig, axs = plt.subplots(2, 2, figsize=(12,10), subplot_kw={'polar': False})
     fig.suptitle('D(Theta)')
     
-    axs[0,0].plot(theta, d_times, color='blue')
+    theta_deg = np.degrees(theta)
+    theta_degs = np.concatenate([theta_deg, theta_deg + 180])
+    d_times_degs = np.concatenate([d_times, d_times[::-1]])
+    d_db_degs = np.concatenate([d_dB, d_dB[::-1]])
+    
+    axs[0,0].plot(theta_degs, d_times_degs, color='blue')
     axs[0,0].set_title("КНД (разы, декарт)")
-    axs[0,0].set_xlabel("θ (рад)")
+    axs[0,0].set_xlabel("θ (градусы)")
     axs[0,0].set_ylabel("D(θ)")
     axs[0,0].grid(True)
+    axs[0,0].set_xlim(0, 360)
     
-    axs[0,1].plot(theta, d_dB, color='red')
+    axs[0,1].plot(theta_degs, d_db_degs, color='red')
     axs[0,1].set_title("КНД (дБ, декарт)")
-    axs[0,1].set_xlabel("θ (рад)")
+    axs[0,1].set_xlabel("θ (градусы)")
     axs[0,1].set_ylabel("D(θ) [дБ]")
     axs[0,1].grid(True)
+    axs[0,1].set_xlim(0, 360)
     
     axs[1,0] = plt.subplot(2,2,3, polar=True)
-    axs[1,0].plot(theta, d_times, color='blue')
+    theta_rads = np.concatenate([theta, theta + np.pi])
+    d_times_rads = np.concatenate([d_times, d_times[::-1]])
+    d_db_rads = np.concatenate([d_dB, d_dB[::-1]])
+    axs[1,0].plot(theta_rads, d_times_rads, color='blue')
     axs[1,0].set_title("КНД (разы, поляр)")
     
     axs[1,1] = plt.subplot(2,2,4, polar=True)
-    axs[1,1].plot(theta, d_dB, color='red')
+    axs[1,1].plot(theta_rads, d_db_rads, color='red')
     axs[1,1].set_title("КНД (дБ, поляр)")
     
     plt.tight_layout(rect=[0, 0, 1, 0.96])
@@ -57,19 +66,23 @@ def main():
     
     print(f'{Dmax(theta=theta):.3f} times\n{10 * np.log10(Dmax(theta=theta)):.3f} dB')
     
-    d_times = D(theta)
-    d_db = 10*np.log10(D(theta) + 1e-9)
+    d_times_0_180 = D(theta)
+    d_db_0_180 = 10*np.log10(D(theta) + 1e-9)
     
-    # Сохранение результатов
+    theta_0_360 = np.concatenate([theta, theta + np.pi])
+    d_times_0_360 = np.concatenate([d_times_0_180, d_times_0_180[::-1]])
+    d_db_0_360 = np.concatenate([d_db_0_180, d_db_0_180[::-1]])
+    theta_deg_0_360 = np.degrees(theta_0_360)  
+    
     with open('Резульаты_питон.txt', 'w', encoding='utf-8') as file:
-        file.write('theta   d_times   d_db\n')
-        for i in range(len(theta)):
-            file.write(f'{theta[i]:.6f}   {d_times[i]:.6f}   {d_db[i]:.6f}\n')
+        file.write('theta(град)   d_times   d_db\n')
+        for i in range(len(theta_0_360)):
+            angle_deg = theta_deg_0_360[i] % 360
+            file.write(f'{angle_deg:.6f}   {d_times_0_360[i]:.6f}   {d_db_0_360[i]:.6f}\n')
     
     print("Результаты сохранены в файл 'Резульаты_питон.txt'")
-    
-    # Построение графика
-    creating_plot(d_times=d_times, d_dB=d_db, theta=theta)
+
+    creating_plot(d_times=d_times_0_360, d_dB=d_db_0_360, theta=theta_0_360)
 
 if __name__=="__main__":
     main()

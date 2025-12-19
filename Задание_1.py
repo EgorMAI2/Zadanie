@@ -1,3 +1,4 @@
+
 import numpy as np
 from scipy.special import spherical_jn, spherical_yn
 import matplotlib.pyplot as plt
@@ -59,8 +60,9 @@ class Plotter:
     
     def plot_results(frequencies, sigmas, D, filename="график.png"):
         plt.figure(figsize=(10, 6))
-        plt.semilogx(frequencies, sigmas, 'b-', linewidth=2)
-        plt.xlabel('Частота, Гц')
+        frequencies = np.array(frequencies) / 1e9
+        plt.plot(frequencies, sigmas, 'b-', linewidth=2)
+        plt.xlabel('Частота, ГГц')
         plt.ylabel('ЭПР, м²')
         plt.title(f'Зависимость ЭПР от частоты\nD = {D*1000:.0f} мм')
         plt.grid(True)
